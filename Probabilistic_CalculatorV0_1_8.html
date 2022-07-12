@@ -1,0 +1,207 @@
+<html>
+
+<head>
+    <style>
+        body {
+            color: white;
+            background-color: black;
+            font-family: 'Comic Sans';
+        }
+        .flex-container {
+            display: flex;
+            flex-wrap: nowrap;
+            background-color: rgb(0, 0, 0);
+        }
+        .flex-container > div {
+            background-color: #363636;
+            width: 300px;
+            margin: 10px;
+            text-align: start;
+            line-height: 30px;
+            font-size: 20px;
+        }
+        #armaImage {
+            width: 1000px;
+            height: 400px;
+        }
+    </style>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+<body>
+    <div>
+        <div class="flex-container">
+            <div style="flex-basis: 200px" id="side1">
+                <h1  id="titoloAttacco">Attacco</h1>
+                <div id="selection1"></div>
+            </div>
+            <div id="sideAttacco">
+            </div>
+            <div alt="Arma non disponibile" width="701" height="333" id="armaImage"></div>
+        </div>
+        <div class="flex-container">
+            <div id="side2">
+                <h1 id="titoloDifesa">Difesa</h1>
+                <table id="selection2"></table>
+            </div>
+            <div id="sideDifesa"></div>
+        </div>
+        <div id="sidemid">
+            <h1>Copertura</h1>
+            <div><input type="radio" class="coperturaBox" name="copertura" id="alta" value="Alta esposizione"><label for="alta">Alta esposizione</label></div>
+            <div><input type="radio" class="coperturaBox" name="copertura" id="nessuna" value="Nessuna copertura" checked="true"><label for="nessuna">Nessuna copertura</label></div>
+            <div><input type="radio" class="coperturaBox" name="copertura" id="leggera" value="Leggera copertura"><label for="leggera">Copertura leggera</label></div>
+            <div><input type="radio" class="coperturaBox" name="copertura" id="pesante" value="Copertura pesante"><label for="pesante">Copertura pesante</label></div>
+        </div>
+        <button onclick="battle()">Inizia attacco</button>
+        <div id="log"></div>
+    </div>
+    <script type="text/javascript" src="Armi.js"></script>
+    <script type="text/javascript" src="Personaggi.js"></script>
+    <script type="text/javascript" src="Armature.js"></script>
+    <script>
+
+        google.charts.load('current', {'packages':['corechart']});
+
+        if (Math.random() < 1 / 20)
+            titoloAttacco.innerHTML += " (boh x me)"
+
+        selection1.innerHTML = ""
+        Personaggi.forEach(a =>
+            selection1.innerHTML += `<div>
+                    <input type="radio" onclick="selezionaPersonaggioChange()" id="selectionA${a.nome}" name="selectionA" value="${a.nome}"/>
+                    <label for="${a.nome}">${a.nome}</label>
+                </div>`)
+
+        function selezionaPersonaggioChange() {
+
+            const selAttaccante = document.querySelector('input[name="selectionA"]:checked')
+            const nomeAttaccante = selAttaccante.defaultValue
+
+            const htmlP = htmlPersonaggio(nomeAttaccante)
+            const htmlA = htmlArma(nomeAttaccante)
+
+            sideAttacco.innerHTML = htmlP + htmlA
+            selectImage()
+        }
+
+        function htmlPersonaggio(nomePersonaggio) {
+            const attaccante = Personaggi.find(e => e.nome == nomePersonaggio)
+            return `<h1  id="mostraNomeAtt">${attaccante.nomeCompleto}</h1>
+                    <div id="mostraArmaturaAtt">Armatura: ${attaccante.armatura}</div>
+                    <pre id="mostraCompAtt">Competenza Attacco: ${attaccante.competenzaAttacco}</pre>
+                    <pre id="mostraCompAtt">Competenza Difesa: ${attaccante.competenzaDifesa}</pre>`
+        }
+
+        function htmlArma(nomePersonaggio) {
+            const attaccante = Personaggi.find(e => e.nome == nomePersonaggio)
+            const nomeArma1 = attaccante.armi[0]
+            let nomeArma2 = attaccante.armi[1]
+
+            if(nomeArma2 == null) { nomeArma2 = "N/A" }
+
+            return `<h1 id="titoloArma">Arma</h1>
+                    <div id="selectionArma">
+                        <div> <input type="radio" onclick="selectImage()" id="primaria"   name="equipaggiata" value="${nomeArma1}"  checked="true"/><label
+                        for="primaria"  >Primaria:   ${nomeArma1}</label></div>
+                        <div> <input type="radio" onclick="selectImage()" id="secondaria" name="equipaggiata" value="${nomeArma2}"/><label
+                        for="secondaria">Secondaria: ${nomeArma2}</label></div>
+                    </div>`
+        }
+
+        function selectImage() {
+            const arma = document.querySelector('input[name="equipaggiata"]:checked')
+            const nomeArma = arma.defaultValue
+            //document.getElementById("armaImage").src = `armiImage/${nomeArma}.png`
+
+            const armaData = Armi.find(e => e.codice == nomeArma)
+
+            const data = new google.visualization.arrayToDataTable([
+                ['Distanza in caselle (1 casella ≈ 1.5 metri)', '% Probabilità di colpire', { role: 'annotation' }],
+                ...armaData.probabilita.map((p, i) => [i + 1, p, p])
+            ]);
+
+            const chart = new google.visualization.BarChart(document.getElementById('armaImage'));
+            chart.draw(data, {
+                title: `${nomeArma}`,
+                width: 1000,
+                height: 400,
+                legend: { position: 'none' },
+                chart: { title: `${nomeArma}` },
+                bar: { groupWidth: "60%" },
+                vAxis: { minValue: 0, maxValue: 100 },
+                orientation: 'horizontal',
+                animation: { startup: true, easing: 'out', duration: 500 },
+            });
+        }
+
+        function mostraAllDif() {
+            const selDifensore = document.querySelectorAll('input[name="selectionD"]:checked')
+            const divDifesa = document.getElementById("sideDifesa")
+            divDifesa.innerHTML = ""
+            selDifensore.forEach(difesa => {
+                divDifesa.innerHTML += htmlPersonaggio(difesa.defaultValue)
+            })
+        }
+
+        selection2.innerHTML = ""
+        Personaggi.forEach(a =>
+            selection2.innerHTML += `<tr>
+                    <td><input type="checkbox" onclick="mostraAllDif()" id="selectionD${a.nome}" name="selectionD" value="${a.nome}"/>
+                    <label for="${a.nome}">${a.nome}</label>
+                    <td><input type="number" min="1" id="caselle${a.nome}">
+                </tr>`)
+
+        function percentualeAttacco(nCaselle, arma, attaccante, difensore, copertura) {
+
+            const nomeArmaturaDifensore = difensore.armatura
+            const armaturaDifensore = Armature.find(e => e.codice == nomeArmaturaDifensore)
+            const probVett = [ 0.7143,  0.7143,  0.7143, 0.7143, 0.7857, 0.8571, 0.9286, 1]
+            const tipoAttacco = arma.tipoDanno
+            const gravitaDanno1 = arma.gravitaDanno
+            let resistenza = armaturaDifensore.gravitaDanno[gravitaDanno1][tipoAttacco][0]
+           
+            if(tipoAttacco == "perforante" && nCaselle < 9){
+                resistenza = resistenza*probVett[nCaselle-1]
+            }
+		if(resistenza == "undefined")
+                console.log("Tipo dell'arma non definito (tipi possibili: taglio, perforante, esplosione, ustione")
+		
+            return Math.ceil(
+                arma.probabilita[nCaselle - 1]
+                * (100 + 5 * (attaccante.competenzaAttacco - difensore.competenzaDifesa)
+                       - resistenza
+                       - copertura) / 100
+            )
+        }
+
+        function battle() {
+            const selAttaccante = document.querySelector('input[name="selectionA"]:checked')
+            const selDifensore = document.querySelectorAll('input[name="selectionD"]:checked')
+            const selCopertura = document.querySelector('input[name="copertura"]:checked').id
+            const htmlArma = document.querySelector('input[name="equipaggiata"]:checked').id
+
+            const copertura = ValoriCopertura[selCopertura]
+            const indiceArma = htmlArma == "primaria"   ? 0
+                             : htmlArma == "secondaria" ? 1
+                             : 0
+            const nome = selAttaccante.defaultValue
+            const attaccante = Personaggi.find(e => e.nome == nome)
+            const nomeArma = attaccante.armi[indiceArma]
+            const arma = Armi.find(e => e.codice == nomeArma)
+
+            if (attaccante == null) { console.log(`Attaccante "${selAttaccante}"" non trovato.`); return }
+            if (arma == null) { console.log(`Arma attaccante "${nomeArma}" non trovata.`); return }
+
+            log.innerHTML = ""
+            selDifensore.forEach(difesa => {
+                const nomeDifesa = difesa.defaultValue
+                const difensore = Personaggi.find(e => e.nome == nomeDifesa)
+                const nCaselle = parseInt(document.getElementById(`caselle${nomeDifesa}`).value)
+                document.write += (nomeArma)
+                log.innerHTML += `<h1>Contro ${nomeDifesa}: ${percentualeAttacco(nCaselle, arma, attaccante, difensore, copertura)}%, usando ${nomeArma}</h1>`
+            })
+        }
+    </script>
+</body>
+
+</html>
