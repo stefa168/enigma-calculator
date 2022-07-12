@@ -180,6 +180,7 @@ const Armi = [
         "gravitaDanno":"leggero",
         "probabilita": [98,85,60,40,20,10,8,7,6,5,4,3,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     },
+    
     {
         "nome":        "Lenovatimen Direct Strike 7",
         "codice":      "LDS7",
