@@ -55,7 +55,6 @@ Riassumo quindi per punti il miglioramento delle funzioni, l'estensione delle fu
 1. Miglioramento delle funzioni del calcolatore: probabilità di colpire
 	- Il calcolatore deve essere capace di mostrare come risultato non solo la probabilità di colpire alla distanza immessa, ma tutte le probabilità di colpire al variare della distanza da 1 a 30 (il driver è la riduzione ulteriore del tempo di calcolo dato che spesso è necessario rifare il calcolo quando è cambiata solo la distanza tra unità attiva e bersaglio)
 	- Permettere di reinserire i dati di input precedenti con un solo click, salvandoli come una specie di log a destra dell'interfaccia.
-	- 
 2. Estensione delle funzioni del calcolatore: calcolo dei danni
 	- Dati tipo di danno, numero e tipologia dei dadi, ossatura e corazza del bersaglio, il calcolatore deve saper calcolare i danni inflitti in funzione del valore risultante dei dadi, restituendo quindi una scala di valori, uno per ogni possibile risultato dalla somma dei dadi.
 	- Dati tipo di danno, numero e tipologia dei dadi, ossatura e corazza del bersaglio, il calcolatore deve saper calcolare il danno medio inflitto.
