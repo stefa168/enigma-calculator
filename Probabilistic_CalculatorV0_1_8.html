@@ -20,7 +20,7 @@
             line-height: 30px;
             font-size: 20px;
         }
-        #armaImage {
+        #armaChart {
             width: 1000px;
             height: 400px;
         }
@@ -36,7 +36,7 @@
             </div>
             <div id="sideAttacco">
             </div>
-            <div alt="Arma non disponibile" width="701" height="333" id="armaImage"></div>
+            <div alt="Arma non disponibile" width="701" height="333" id="armaChart"></div>
         </div>
         <div class="flex-container">
             <div id="side2">
@@ -54,6 +54,7 @@
         </div>
         <button onclick="battle()">Inizia attacco</button>
         <div id="log"></div>
+        <div alt="Arma non disponibile" width="701" height="333" id="armaChartAtt"></div>
     </div>
     <script type="text/javascript" src="Armi.js"></script>
     <script type="text/javascript" src="Personaggi.js"></script>
@@ -81,7 +82,7 @@
             const htmlA = htmlArma(nomeAttaccante)
 
             sideAttacco.innerHTML = htmlP + htmlA
-            selectImage()
+            selectChart()
         }
 
         function htmlPersonaggio(nomePersonaggio) {
@@ -101,18 +102,17 @@
 
             return `<h1 id="titoloArma">Arma</h1>
                     <div id="selectionArma">
-                        <div> <input type="radio" onclick="selectImage()" id="primaria"   name="equipaggiata" value="${nomeArma1}"  checked="true"/><label
+                        <div> <input type="radio" onclick="selectChart()" id="primaria"   name="equipaggiata" value="${nomeArma1}"  checked="true"/><label
                         for="primaria"  >Primaria:   ${nomeArma1}</label></div>
-                        <div> <input type="radio" onclick="selectImage()" id="secondaria" name="equipaggiata" value="${nomeArma2}"/><label
+                        <div> <input type="radio" onclick="selectChart()" id="secondaria" name="equipaggiata" value="${nomeArma2}"/><label
                         for="secondaria">Secondaria: ${nomeArma2}</label></div>
                     </div>`
         }
 
-        function selectImage() {
+        function selectChart() {
             const arma = document.querySelector('input[name="equipaggiata"]:checked')
             const nomeArma = arma.defaultValue
-            //document.getElementById("armaImage").src = `armiImage/${nomeArma}.png`
-
+           
             const armaData = Armi.find(e => e.codice == nomeArma)
 
             const data = new google.visualization.arrayToDataTable([
@@ -120,7 +120,29 @@
                 ...armaData.probabilita.map((p, i) => [i + 1, p, p])
             ]);
 
-            const chart = new google.visualization.BarChart(document.getElementById('armaImage'));
+            const chart = new google.visualization.BarChart(document.getElementById('armaChart'));
+            chart.draw(data, {
+                title: `${nomeArma}`,
+                width: 1000,
+                height: 400,
+                legend: { position: 'none' },
+                chart: { title: `${nomeArma}` },
+                bar: { groupWidth: "60%" },
+                vAxis: { minValue: 0, maxValue: 100 },
+                orientation: 'horizontal',
+                animation: { startup: true, easing: 'out', duration: 500 },
+            });
+        }
+
+        function selectChartAtt(arma, attaccante, difensore, copertura) {
+            const nomeArma = arma.defaultValue          
+            const probArray = percentualeAttacco(arma, attaccante, difensore, copertura) 
+            const data = new google.visualization.arrayToDataTable([
+                ['Distanza in caselle (1 casella ≈ 1.5 metri)', '% Probabilità di colpire', { role: 'annotation' }],
+                ...probArray.map((p, i) => [i + 1, p, p])
+            ]);
+
+            const chart = new google.visualization.BarChart(document.getElementById('armaChartAtt'));
             chart.draw(data, {
                 title: `${nomeArma}`,
                 width: 1000,
@@ -146,12 +168,11 @@
         selection2.innerHTML = ""
         Personaggi.forEach(a =>
             selection2.innerHTML += `<tr>
-                    <td><input type="checkbox" onclick="mostraAllDif()" id="selectionD${a.nome}" name="selectionD" value="${a.nome}"/>
+                    <td><input type="radio" onclick="mostraAllDif()" id="selectionD${a.nome}" name="selectionD" value="${a.nome}"/>
                     <label for="${a.nome}">${a.nome}</label>
-                    <td><input type="number" min="1" id="caselle${a.nome}">
                 </tr>`)
 
-        function percentualeAttacco(nCaselle, arma, attaccante, difensore, copertura) {
+        function percentualeAttacco(arma, attaccante, difensore, copertura) {
 
             const nomeArmaturaDifensore = difensore.armatura
             const armaturaDifensore = Armature.find(e => e.codice == nomeArmaturaDifensore)
@@ -160,18 +181,19 @@
             const gravitaDanno1 = arma.gravitaDanno
             let resistenza = armaturaDifensore.gravitaDanno[gravitaDanno1][tipoAttacco][0]
            
-            if(tipoAttacco == "perforante" && nCaselle < 9){
-                resistenza = resistenza*probVett[nCaselle-1]
-            }
-		if(resistenza == "undefined")
+            if(!resistenza)
                 console.log("Tipo dell'arma non definito (tipi possibili: taglio, perforante, esplosione, ustione")
-		
-            return Math.ceil(
-                arma.probabilita[nCaselle - 1]
-                * (100 + 5 * (attaccante.competenzaAttacco - difensore.competenzaDifesa)
-                       - resistenza
-                       - copertura) / 100
-            )
+        
+            let probArray = new Array(30)
+            for(i=0;i<30;i++){
+                if(i<8 && arma.tipoDanno == 'perforante')
+                probArray[i] =  Math.round(arma.probabilita[i]*(100 + 5 * (attaccante.competenzaAttacco - difensore.competenzaDifesa)- resistenza*probVett[i] - copertura)/100) 
+                else
+                probArray[i] =  Math.round(arma.probabilita[i]*(100 + 5 * (attaccante.competenzaAttacco - difensore.competenzaDifesa)- resistenza - copertura)/100)
+            }
+
+            return probArray
+            
         }
 
         function battle() {
@@ -196,9 +218,9 @@
             selDifensore.forEach(difesa => {
                 const nomeDifesa = difesa.defaultValue
                 const difensore = Personaggi.find(e => e.nome == nomeDifesa)
-                const nCaselle = parseInt(document.getElementById(`caselle${nomeDifesa}`).value)
                 document.write += (nomeArma)
-                log.innerHTML += `<h1>Contro ${nomeDifesa}: ${percentualeAttacco(nCaselle, arma, attaccante, difensore, copertura)}%, usando ${nomeArma}</h1>`
+                log.innerHTML += `<h1>Contro ${nomeDifesa}, usando ${nomeArma}</h1>`
+                selectChartAtt(arma, attaccante, difensore, copertura)
             })
         }
     </script>
