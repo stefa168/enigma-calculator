@@ -1,0 +1,16 @@
+{
+  "id":  "http://some.site.somewhere/entry-schema#",
+  "$schema":  "http://json-schema-org/draft-06/schema#",
+  "type":  "object",
+  "required":  [ "options" ],
+  "properties":  {
+    "options":  {
+      "type":  "array",
+      "description": "Interesting details: Fresh New Awesome",
+      "minItems":  1,
+      "items":  { "type":  "string" },
+      "uniqueItems":  true,
+    },
+    "readonly":  { "type":  "boolean" }
+  }
+}
