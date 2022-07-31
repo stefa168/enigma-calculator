@@ -1,16 +1,21 @@
 {
-  "id":  "http://some.site.somewhere/entry-schema#",
-  "$schema":  "http://json-schema-org/draft-06/schema#",
-  "type":  "object",
-  "required":  [ "options" ],
-  "properties":  {
-    "options":  {
-      "type":  "array",
-      "description": "Interesting details: Fresh New Awesome",
-      "minItems":  1,
-      "items":  { "type":  "string" },
-      "uniqueItems":  true,
+  "$id": "https://example.com/person.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Person",
+  "type": "object",
+  "properties": {
+    "firstName": {
+      "type": "string",
+      "description": "The person's first name."
     },
-    "readonly":  { "type":  "boolean" }
+    "lastName": {
+      "type": "string",
+      "description": "The person's last name."
+    },
+    "age": {
+      "description": "Age in years which must be equal to or greater than zero.",
+      "type": "integer",
+      "minimum": 0
+    }
   }
 }
