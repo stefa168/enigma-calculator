@@ -1,5 +1,7 @@
 # enigma-calculator
 
+> Note: development was moved to https://github.com/TheVoidOutskirts/thevoidoutskirts.github.io.
+
 This is the calculator developed to aid combat calculations during gameplay for Tommaso's Enigma _The Void Outskirts_.
 
 ## Recommended IDE Setup
